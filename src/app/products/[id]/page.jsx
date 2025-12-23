@@ -1,7 +1,46 @@
 import { getSingleProduct } from "@/actions/server/product";
+import CartButton from "@/components/buttons/CartButton";
 import Image from "next/image";
 import React from "react";
 import { FaStar, FaShoppingCart } from "react-icons/fa";
+
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const product = await getSingleProduct(id);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+      description: "The requested product does not exist",
+    };
+  }
+
+  return {
+    title: `${product.title} | Your Store`,
+    description: product.description?.slice(0, 160),
+
+    openGraph: {
+      title: product.title,
+      description: product.description?.slice(0, 160),
+      type: "website",
+      images: [
+        {
+          url: product.image,
+          width: 1200,
+          height: 630,
+          alt: product.title,
+        },
+      ],
+    },
+
+    twitter: {
+      card: "summary_large_image",
+      title: product.title,
+      description: product.description?.slice(0, 160),
+      images: [product.image],
+    },
+  };
+}
 
 const ProductDetails = async ({ params }) => {
   const { id } = await params;
@@ -77,10 +116,7 @@ const ProductDetails = async ({ params }) => {
           )}
 
           {/* Add to Cart */}
-          <button className="btn btn-primary w-full mt-4">
-            <FaShoppingCart className="mr-2" />
-            Add to Cart
-          </button>
+         <CartButton product={product}></CartButton>
         </div>
       </div>
     </div>
