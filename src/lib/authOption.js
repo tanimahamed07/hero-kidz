@@ -5,12 +5,14 @@ import { collections, dbConnect } from "./dbConnect";
 
 export const authOptions = {
   // Configure one or more authentication providers
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     CredentialsProvider({
       name: "Credentials",
       credentials: {},
       async authorize(credentials, req) {
         const user = await loginUser(credentials);
+        console.log(user);
         return user;
       },
     }),
@@ -24,7 +26,7 @@ export const authOptions = {
     async signIn({ user, account, profile, email, credentials }) {
       const isExist = await dbConnect(collections.USERS).findOne({
         email: user.email,
-        provider: account?.provider,
+        // provider: account?.provider,
       });
       if (isExist) {
         return true;
@@ -34,21 +36,37 @@ export const authOptions = {
         provider: account?.provider,
         name: user.name,
         email: user.email,
-        image:user.image,
+        image: user.image,
         role: "user",
       };
       const result = await dbConnect(collections.USERS).insertOne(newUser);
-      return user.acknowledged;
-      // return true;
+      // return user.acknowledged;
+      return true;
     },
     // async redirect({ url, baseUrl }) {
     //   return baseUrl;
     // },
-    // async session({ session, token, user }) {
-    //   return session;
-    // },
-    // async jwt({ token, user, account, profile, isNewUser }) {
-    //   return token;
-    // },
+    async session({ session, token, user }) {
+      if (token) {
+        session.user.role = token?.role;
+        session.user.email = token?.email;
+      }
+      return session;
+    },
+    async jwt({ token, user, account, profile, isNewUser }) {
+      if (user) {
+        if (account.provider == "google") {
+          const dbUser = await dbConnect(collections.USERS).findOne({
+            email: user?.email,
+          });
+          token.role = dbUser?.role;
+          token.email = dbUser?.email;
+        } else {
+          token.role = user?.role;
+          token.email = user?.email;
+        }
+      }
+      return token;
+    },
   },
 };

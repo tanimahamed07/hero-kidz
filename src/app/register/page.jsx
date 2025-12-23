@@ -8,6 +8,7 @@ import { useState } from "react";
 
 export default function RegisterPage() {
   const params = useSearchParams();
+  const router = useRouter();
   const callBack = params.get("callbackUrl") || "";
   const [formData, setFormData] = useState({
     name: "",
@@ -34,7 +35,8 @@ export default function RegisterPage() {
         redirect: "false",
         callbackUrl: params.get("callbackUrl") || "/",
       });
-      alert('successful. please login')
+      alert("successful. please login");
+      router.push(callBack);
     }
   };
 

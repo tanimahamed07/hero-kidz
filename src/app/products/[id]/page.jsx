@@ -116,7 +116,7 @@ const ProductDetails = async ({ params }) => {
           )}
 
           {/* Add to Cart */}
-         <CartButton product={product}></CartButton>
+          <CartButton product={{ product }}></CartButton>
         </div>
       </div>
     </div>

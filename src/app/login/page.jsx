@@ -8,8 +8,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const params = useSearchParams();
+  const router = useRouter()
   const callBack = params.get("callbackUrl") || "";
-  const router = useRouter();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -34,10 +35,10 @@ export default function LoginPage() {
     });
 
     if (!result.ok) {
-      Swal.fire("Error", "Email or password not matched", "error");
+      Swal.fire("Error", "Email or password not matched. Try Google Login or Register", "error");
     } else {
       Swal.fire("Success", "Welcome to Kidz Hub", "success");
-      router.push("/");
+      router.push(callBack);
     }
   };
 
