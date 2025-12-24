@@ -8,7 +8,7 @@ import { cache } from "react";
 
 const { collections, dbConnect } = require("@/lib/dbConnect");
 
-const cartCollection = dbConnect(collections.CART);
+ const cartCollection = dbConnect(collections.CART);
 
 export const handleCart = async ({ product, inc = true }) => {
   const { user } = (await getServerSession(authOptions)) || {};
@@ -83,4 +83,31 @@ export const deleteItemsFromCart = async (id) => {
     revalidatePath("/cart");
   }
   return { success: Boolean(result.deletedCount) };
+};
+
+export const increaseItemDb = async (id, quantity) => {
+  const { user } = (await getServerSession(authOptions)) || {};
+  if (!user) {
+    return { success: false };
+  }
+  if (quantity > 10) {
+    return { success: false, message: "Quantity cannot exceed 10" };
+  }
+  const query = { _id: new ObjectId(id) };
+  const updatedData = { $inc: { quantity: 1 } };
+  const result = await cartCollection.updateOne(query, updatedData);
+  return { success: Boolean(result.modifiedCount) };
+};
+export const decreaseItemDb = async (id, quantity) => {
+  const { user } = (await getServerSession(authOptions)) || {};
+  if (!user) {
+    return { success: false };
+  }
+  if (quantity <= 1) {
+    return { success: false, message: "quantity cannot be less than 1" };
+  }
+  const query = { _id: new ObjectId(id) };
+  const updatedData = { $inc: { quantity: -1 } };
+  const result = await cartCollection.updateOne(query, updatedData);
+  return { success: Boolean(result.modifiedCount) };
 };

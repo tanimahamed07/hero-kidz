@@ -1,13 +1,21 @@
 "use client";
 
-import { deleteItemsFromCart } from "@/actions/server/cart";
+import {
+  decreaseItemDb,
+  deleteItemsFromCart,
+  increaseItemDb,
+} from "@/actions/server/cart";
 import Image from "next/image";
+import { useState } from "react";
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa";
 import Swal from "sweetalert2";
 
-const CartItem = ({ item, onIncrease, onDecrease }) => {
+const CartItem = ({ item, removeItem, updateQuantity }) => {
   const { image, title, quantity, price, _id } = item;
+  console.log(price);
+  const [loading, setLoading] = useState(false);
   const handleDeleteCart = async () => {
+    setLoading(true);
     Swal.fire({
       title: "Are you sure?",
       text: "You won't be able to revert this!",
@@ -20,6 +28,7 @@ const CartItem = ({ item, onIncrease, onDecrease }) => {
       if (result.isConfirmed) {
         const result = await deleteItemsFromCart(_id);
         if (result.success) {
+          removeItem(_id);
           Swal.fire({
             title: "Deleted!",
             text: "Your item has been deleted.",
@@ -32,8 +41,26 @@ const CartItem = ({ item, onIncrease, onDecrease }) => {
             icon: "error",
           });
         }
+        setLoading(false);
       }
     });
+  };
+  const onIncrease = async () => {
+    setLoading(true);
+    const result = await increaseItemDb(_id, quantity);
+    if (result.success) {
+      updateQuantity(_id, quantity + 1);
+      setLoading(false);
+    }
+  };
+  const onDecrease = async () => {
+    setLoading(true);
+    if (quantity <= 1) return;
+    const result = await decreaseItemDb(_id, quantity - 1);
+    if (result.success) {
+      updateQuantity(_id, quantity - 1);
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,6 +84,7 @@ const CartItem = ({ item, onIncrease, onDecrease }) => {
           {/* Quantity Controls */}
           <div className="flex items-center gap-2">
             <button
+              disabled={quantity === 1 || loading}
               className="btn btn-sm btn-outline"
               onClick={() => onDecrease(item)}
             >
@@ -66,6 +94,7 @@ const CartItem = ({ item, onIncrease, onDecrease }) => {
             <span className="font-semibold w-6 text-center">{quantity}</span>
 
             <button
+              disabled={quantity === 10 || loading}
               className="btn btn-sm btn-outline"
               onClick={() => onIncrease(item)}
             >
