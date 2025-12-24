@@ -1,10 +1,40 @@
 "use client";
 
+import { deleteItemsFromCart } from "@/actions/server/cart";
 import Image from "next/image";
 import { FaPlus, FaMinus, FaTrash } from "react-icons/fa";
+import Swal from "sweetalert2";
 
-const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
-  const { image, title, quantity, price } = item;
+const CartItem = ({ item, onIncrease, onDecrease }) => {
+  const { image, title, quantity, price, _id } = item;
+  const handleDeleteCart = async () => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        const result = await deleteItemsFromCart(_id);
+        if (result.success) {
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your item has been deleted.",
+            icon: "success",
+          });
+        } else {
+          Swal.fire({
+            title: "Error!",
+            text: "Oops! Something went wrong",
+            icon: "error",
+          });
+        }
+      }
+    });
+  };
 
   return (
     <div className="card card-side bg-base-100 shadow-md p-4 mb-4">
@@ -46,7 +76,7 @@ const CartItem = ({ item, onIncrease, onDecrease, onRemove }) => {
           {/* Remove */}
           <button
             className="btn btn-sm btn-error btn-outline"
-            onClick={() => onRemove(item)}
+            onClick={() => handleDeleteCart(item)}
           >
             <FaTrash />
           </button>
