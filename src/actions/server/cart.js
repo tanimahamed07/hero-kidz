@@ -8,9 +8,9 @@ import { cache } from "react";
 
 const { collections, dbConnect } = require("@/lib/dbConnect");
 
- const cartCollection = dbConnect(collections.CART);
+const cartCollection = dbConnect(collections.CART);
 
-export const handleCart = async ({ product, inc = true }) => {
+export const handleCart = async (productId) => {
   const { user } = (await getServerSession(authOptions)) || {};
   console.log("------------->", user);
 
@@ -18,18 +18,21 @@ export const handleCart = async ({ product, inc = true }) => {
     return { success: false };
   }
 
-  const query = { email: user?.email, productId: product?._id };
+  const query = { email: user?.email, productId };
   const isAdded = await cartCollection.findOne(query);
 
   if (isAdded) {
     const updatedData = {
       $inc: {
-        quantity: inc ? 1 : -1,
+        quantity: 1,
       },
     };
     const result = await cartCollection.updateOne(query, updatedData);
     return { success: Boolean(result.modifiedCount) };
   } else {
+    const product = await dbConnect(collections.PRODUCTS).findOne({
+      _id: new ObjectId(productId),
+    });
     const newData = {
       productId: product?._id,
       email: user?.email,
@@ -77,7 +80,7 @@ export const deleteItemsFromCart = async (id) => {
   if (id.length != 24) {
     return { success: false };
   }
-  const query = { _id: new ObjectId(id) };
+  const query = { _id: new ObjectId(id), email: user?.email };
   const result = await cartCollection.deleteOne(query);
   if (Boolean(result.deletedCount)) {
     revalidatePath("/cart");
@@ -93,7 +96,7 @@ export const increaseItemDb = async (id, quantity) => {
   if (quantity > 10) {
     return { success: false, message: "Quantity cannot exceed 10" };
   }
-  const query = { _id: new ObjectId(id) };
+  const query = { _id: new ObjectId(id), email: user?.email };
   const updatedData = { $inc: { quantity: 1 } };
   const result = await cartCollection.updateOne(query, updatedData);
   return { success: Boolean(result.modifiedCount) };
@@ -106,7 +109,7 @@ export const decreaseItemDb = async (id, quantity) => {
   if (quantity <= 1) {
     return { success: false, message: "quantity cannot be less than 1" };
   }
-  const query = { _id: new ObjectId(id) };
+  const query = { _id: new ObjectId(id), email: user?.email };
   const updatedData = { $inc: { quantity: -1 } };
   const result = await cartCollection.updateOne(query, updatedData);
   return { success: Boolean(result.modifiedCount) };

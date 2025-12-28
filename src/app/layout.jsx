@@ -3,7 +3,7 @@ import "./globals.css";
 import localFont from "next/font/local";
 import Footer from "@/components/layouts/Footer";
 import Navbar from "@/components/layouts/Navbar";
-import NextAuthProvider from "./Provider/NextAuthProvider";
+import NextAuthProvider from "../Provider/NextAuthProvider";
 
 const poppins = Poppins({ weight: ["100", "200", "400", "500", "600", "800"] });
 

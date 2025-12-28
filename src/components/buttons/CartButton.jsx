@@ -18,7 +18,7 @@ const CartButton = ({ product }) => {
   const add2Cart =async () => {
     setIsLoading(true)
     if (isLogin){
-    const result = await  handleCart({product, inc: true});
+    const result = await  handleCart(product?._id);
     if(result.success){
       Swal.fire('Added to Cart', product?.title, 'success')
     }else{
